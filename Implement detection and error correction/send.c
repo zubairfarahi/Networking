@@ -21,7 +21,7 @@ int main(int argc,char** argv)
 	char *rawData;
 	int it;
 
-	strcpy(buffer, "Ciocirlan este smecher mafiot");
+	strcpy(buffer, "Ciocirlan is a smeker mafiot");
 
 	sendedMessage.len = strlen(buffer) + 1 + sizeof(int);
 	headerData = (int *) sendedMessage.payload;
