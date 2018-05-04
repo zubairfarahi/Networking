@@ -1,0 +1,16 @@
+
+
+Running skeleton code:
+	cd link_emulator
+	make
+	cd ..
+	make
+	./run_experiment <file>
+
+A form file will be generated <file>_recv.
+Verification: diff <file> <file>_recv.
+
+For files larger than 1MB,
+it will wait for a few seconds until
+to diff execution.
+
