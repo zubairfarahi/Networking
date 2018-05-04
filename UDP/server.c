@@ -1,71 +1,71 @@
-
 #include "helpers.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
+#define len 1000
 
 void usage(char*file)
 {
-	fprintf(stderr,"Usage: %s server_port file\n",file);
+	fprintf(stderr,"Usage: %s server_ip server_port\n",file);
 	exit(0);
 }
 
-/*
-*	Usage: ./server server_port filename
-*/
 int main(int argc,char**argv)
 {
-	if (argc!=3)
+	if (argc != 3)
 		usage(argv[0]);
 	
-	struct sockaddr_in my_sockaddr,from_station ;
+	struct sockaddr_in my_sockaddr, client_addr;
 	char buffer[BUFLEN];
-	int fd;
-	DIE((fd=open(argv[2],O_WRONLY|O_CREAT|O_TRUNC,0644))==-1,"open file");
+	int portno;
+	int sockfd2; 
 
-	/*Open socket*/
-	int socketfd;
-	socketfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	sscanf(argv[2], "%d", &portno);
 
-	/*Set sockaddr_in structure to listen to that port*/
-	my_sockaddr.sin_family = AF_INET;
-	my_sockaddr.sin_port = htons(atoi(argv[1]));
-	my_sockaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	
-	/* Linking socket properties */
-	from_station.sin_family = AF_INET;
-	from_station.sin_port = 0;
-	from_station.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	int noBytesWrited;
-	int bindel;
-	bindel = bind(socketfd, &(my_sockaddr), sizeof(struct sockaddr));
-	/* Open file for writing */
-	
-	int sem;
-	sem = 1;
-
-	
-	
-	int numberOfbytesRecived;
-	int len;
-	printf("areceived message\n");
-	while(sem) {
-		printf("received message\n");
-		numberOfbytesRecived = recvfrom(socketfd, buffer, BUFLEN, 0, &from_station,(socklen_t *) &len);
-		noBytesWrited = write(fd, buffer, numberOfbytesRecived);
-		printf("received message\n");
-		if ( noBytesWrited < 0 ) {
-			perror("Erorr");
-		}
-		if(numberOfbytesRecived < BUFLEN) {
-			sem = 0;
-		}
-		printf("received message\n");
+	int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (sockfd < 0) {
+		printf("can't open socket");
 	}
 
-		
-
-	close(socketfd);
+    my_sockaddr.sin_family = AF_INET;
+	my_sockaddr.sin_addr.s_addr = INADDR_ANY;
+	my_sockaddr.sin_port = htons(portno);
 	
-	close(fd);
+    bind(sockfd, (struct sockaddr *) &my_sockaddr, sizeof(struct sockaddr));
+
+    listen (sockfd, len);
+
+    int addrlen = sizeof (struct sockaddr_in);
+
+    sockfd2 = accept (sockfd, (struct  sockaddr*) &client_addr, &addrlen);
+
+    if (sockfd2 < 0) {
+    	printf("can't accept socket");
+    }
+
+    while (1) {
+    	memset (buffer, 0, 256);
+    	int n = recv (sockfd2, buffer, BUFLEN, 0);
+
+    	if (n != -1) {
+            printf ("%s\n", buffer);
+            break;
+        }
+    } 
+
+	
+    close (sockfd);
+    close (sockfd2);
+
 	return 0;
 }
